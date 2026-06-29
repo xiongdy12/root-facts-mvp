@@ -1,7 +1,27 @@
 import "../styles/styles.css";
 import App from "./pages/app.js";
 
+// Registrasi Service Worker dijalankan SEGERA & independen — tidak menunggu
+// pemuatan model (yang lama), dan tidak bergantung pada event window "load".
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  navigator.serviceWorker
+    .register("/sw.js")
+    .then((registration) =>
+      console.info("✅ Service Worker terdaftar:", registration.scope),
+    )
+    .catch((error) =>
+      console.warn(
+        "Service Worker belum tersedia (normal di mode dev):",
+        error.message,
+      ),
+    );
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  registerServiceWorker();
+
   const app = new App({
     container: document.querySelector("#main-content"),
   });
@@ -10,19 +30,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (typeof lucide !== "undefined") {
     lucide.createIcons();
-  }
-
-  // Registrasi Service Worker (dihasilkan Workbox saat build production).
-  // Di mode dev (webpack-dev-server) berkas sw.js tidak ada, jadi dilewati.
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
-      try {
-        const registration =
-          await navigator.serviceWorker.register("/sw.js");
-        console.info("✅ Service Worker terdaftar:", registration.scope);
-      } catch (error) {
-        console.warn("Service Worker belum tersedia (mode dev):", error.message);
-      }
-    });
   }
 });
